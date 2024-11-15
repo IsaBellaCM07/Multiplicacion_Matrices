@@ -32,13 +32,14 @@ def guardar_matriz(matriz, nombre_archivo):
 
 def ejecutar_algoritmo(algoritmo, A, B, block_size=None):
     """Ejecuta un algoritmo de multiplicación de matrices y mide el tiempo de ejecución."""
-    start_time = time.time()
+    start_time = time.perf_counter()
     if block_size is not None:
         C = algoritmo(A, B, block_size)  # Solo pasa block_size si es necesario
     else:
         C = algoritmo(A, B)
-    end_time = time.time()
+    end_time = time.perf_counter()
     tiempo_ejecucion = end_time - start_time
+
     return C, tiempo_ejecucion
 
 
@@ -47,10 +48,9 @@ def guardar_resultados(tiempos, archivo_tiempos="resultados/tiempos_ejecucion.cs
     with open(archivo_tiempos, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(
-            ["Algoritmo", "Tamaño Matriz", "Caso 1", "Caso 2", "Caso 3", "Caso 4", "Caso 5", "Caso 6", "Caso 7",
-             "Caso 8"])
+            ["Algoritmo", "Tiempo Promedio (segundos)"])
         for alg, data in tiempos.items():
-            writer.writerow([alg] + data)
+            writer.writerow([alg] + [np.mean(data)])
 
 
 def guardar_resultado_matriz(C, nombre_archivo):
@@ -64,12 +64,12 @@ def generar_grafico(tiempos, archivo_grafico="resultados/graficos/tiempos_ejecuc
     tiempos_promedio = [np.mean(data) for data in tiempos.values()]
 
     plt.figure(figsize=(10, 6))
-    bars = plt.bar(algoritmos, tiempos_promedio, color='skyblue')
+    bars = plt.bar(algoritmos, tiempos_promedio, color='darkorchid')
 
-    # Agregar los tiempos de ejecución sobre las barras
+    # Agregar los tiempos de ejecución sobre las barras con 5 decimales
     for bar in bars:
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2, height, f'{height:.2f}', ha='center', va='bottom', fontsize=10)
+        plt.text(bar.get_x() + bar.get_width() / 2, height, f'{height:.5f}', ha='center', va='bottom', fontsize=10)
 
     plt.xlabel('Algoritmos')
     plt.ylabel('Tiempo de Ejecución (segundos)')
@@ -102,12 +102,26 @@ algoritmos = {
 
 # Ejecutar pruebas con diferentes tamaños de matrices
 for n in casos_tamano:
-    A = generar_matriz(n)
-    B = generar_matriz(n)
+    matriz_A_path = f"resultados/matrices/matriz_A_{n}.txt"
+    matriz_B_path = f"resultados/matrices/matriz_B_{n}.txt"
 
-    # Guardar las matrices generadas en archivos
-    guardar_matriz(A, f"resultados/matrices/matriz_A_{n}.txt")
-    guardar_matriz(B, f"resultados/matrices/matriz_B_{n}.txt")
+    # Verificar si las matrices ya existen
+    if not os.path.exists(matriz_A_path) or not os.path.exists(matriz_B_path):
+        A = generar_matriz(n)
+        B = generar_matriz(n)
+
+        # Guardar las matrices generadas en archivos
+        if not os.path.exists(matriz_A_path):
+            guardar_matriz(A, matriz_A_path)
+        if not os.path.exists(matriz_B_path):
+            guardar_matriz(B, matriz_B_path)
+    else:
+        # Si las matrices ya existen, cargarlas
+        A = np.loadtxt(matriz_A_path, dtype=np.int64)
+        B = np.loadtxt(matriz_B_path, dtype=np.int64)
+
+    # Inicializar un diccionario para los tiempos de este tamaño específico de matriz
+    tiempos_por_tamano = {}
 
     # Ejecutar los algoritmos con estas matrices
     for nombre_algoritmo, algoritmo in algoritmos.items():
@@ -119,16 +133,25 @@ for n in casos_tamano:
         else:
             C, tiempo = ejecutar_algoritmo(algoritmo, A, B)
 
-        # Guardar los resultados de las matrices
-        guardar_resultado_matriz(C, f"resultados/resultados_matrices/resultado_{nombre_algoritmo}_{n}.txt")
+        # Registrar los tiempos para este tamaño de matriz
+        if nombre_algoritmo not in tiempos_por_tamano:
+            tiempos_por_tamano[nombre_algoritmo] = []
+        tiempos_por_tamano[nombre_algoritmo].append(tiempo)
 
-        # Registrar los tiempos
-        if nombre_algoritmo not in tiempos:
-            tiempos[nombre_algoritmo] = []
-        tiempos[nombre_algoritmo].append(tiempo)
+    # Guardar los tiempos de ejecución por tamaño de matriz en su archivo CSV respectivo
+    guardar_resultados(tiempos_por_tamano, archivo_tiempos=f"resultados/tiempos/tiempos_ejecucion_{n}.csv")
 
-# Guardar los tiempos de ejecución en un archivo CSV
-guardar_resultados(tiempos)
+    # Acumular los tiempos en el diccionario global
+    for alg, tiempo in tiempos_por_tamano.items():
+        if alg not in tiempos:
+            tiempos[alg] = []
+        tiempos[alg].extend(tiempo)
 
-# Generar y guardar el gráfico de los tiempos de ejecución
-generar_grafico(tiempos)
+    # Generar y guardar el gráfico de los tiempos de ejecución para este tamaño de matriz
+    generar_grafico(tiempos_por_tamano, archivo_grafico=f"resultados/graficos/tiempos_ejecucion_{n}.png")
+
+# Guardar los tiempos de ejecución acumulados en el archivo CSV de promedios
+guardar_resultados(tiempos, archivo_tiempos="resultados/tiempos/tiempos_ejecucion_promedio.csv")
+
+# Generar y guardar el gráfico de los tiempos de ejecución promedios
+generar_grafico(tiempos, archivo_grafico="resultados/graficos/tiempos_ejecucion_promedio.png")
