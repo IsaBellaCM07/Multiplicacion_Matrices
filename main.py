@@ -16,7 +16,6 @@ from algoritmos.III3SequentialBlock import sequential_block_multiplication_II3
 
 # Crear las carpetas necesarias
 os.makedirs('resultados/matrices', exist_ok=True)
-os.makedirs('resultados/graficos', exist_ok=True)
 
 
 # Funciones auxiliares
@@ -43,42 +42,26 @@ def ejecutar_algoritmo(algoritmo, A, B, block_size=None):
     return C, tiempo_ejecucion
 
 
-def guardar_resultados(tiempos, archivo_tiempos="resultados/tiempos_ejecucion.csv"):
+def guardar_resultados(tiempos, archivo_tiempos, tamano_matriz=None):
     """Guarda los tiempos de ejecución en un archivo CSV."""
     with open(archivo_tiempos, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(
-            ["Algoritmo", "Tiempo Promedio (segundos)"])
-        for alg, data in tiempos.items():
-            writer.writerow([alg] + [np.mean(data)])
+
+        # Escribir encabezado según el contexto
+        if tamano_matriz:
+            writer.writerow(["Algoritmo", "Tiempo en segundos"])
+            for alg, data in tiempos.items():
+                for tiempo in data:
+                    writer.writerow([alg, tiempo, tamano_matriz])
+        else:
+            writer.writerow(["Algoritmo", "Tiempo promedio en segundos"])
+            for alg, data in tiempos.items():
+                writer.writerow([alg, np.mean(data)])
 
 
 def guardar_resultado_matriz(C, nombre_archivo):
     """Guarda el resultado de la multiplicación de matrices en un archivo."""
     np.savetxt(nombre_archivo, C, fmt="%d")
-
-
-def generar_grafico(tiempos, archivo_grafico="resultados/graficos/tiempos_ejecucion_comparativa.png"):
-    """Genera y guarda un gráfico de los tiempos de ejecución de los algoritmos."""
-    algoritmos = list(tiempos.keys())
-    tiempos_promedio = [np.mean(data) for data in tiempos.values()]
-
-    plt.figure(figsize=(10, 6))
-    bars = plt.bar(algoritmos, tiempos_promedio, color='darkorchid')
-
-    # Agregar los tiempos de ejecución sobre las barras con 5 decimales
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2, height, f'{height:.5f}', ha='center', va='bottom', fontsize=10)
-
-    plt.xlabel('Algoritmos')
-    plt.ylabel('Tiempo de Ejecución (segundos)')
-    plt.title('Comparación de Tiempos de Ejecución de Algoritmos de Multiplicación de Matrices')
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    plt.savefig(archivo_grafico)
-    plt.show()
-
 
 # Definir los tamaños de matrices a probar (n debe ser factor de 2^n)
 casos_tamano = [2 ** i for i in range(1, 9)]  # Tamaños: 2^1, 2^2, ..., 2^8
@@ -94,9 +77,9 @@ algoritmos = {
     "WinogradOriginal": winograd_original,
     "WinogradScaled": winograd_scaled,
     "StrassenNaiv": strassen_naive,
-    "III.3 Sequential block": sequential_block_multiplication_II3,
-    "IV.3 Sequential block": sequential_block_multiplication_IV3,
-    "V.3 Sequential block": sequential_block_multiplication_v3,
+    "III.3 Sequential Block": sequential_block_multiplication_II3,
+    "IV.3 Sequential Block": sequential_block_multiplication_IV3,
+    "V.3 Sequential Block": sequential_block_multiplication_v3,
     "V.4 Parallel Block": parallel_block_multiplication,
 }
 
@@ -127,7 +110,7 @@ for n in casos_tamano:
     for nombre_algoritmo, algoritmo in algoritmos.items():
         # Asignar block_size si es necesario
         block_size = 64  # Ajusta el valor de block_size según tus necesidades
-        if nombre_algoritmo in ["III.3 Sequential block", "IV.3 Sequential block", "V.3 Sequential block",
+        if nombre_algoritmo in ["III.3 Sequential Block", "IV.3 Sequential Block", "V.3 Sequential Block",
                                 "V.4 Parallel Block"]:
             C, tiempo = ejecutar_algoritmo(algoritmo, A, B, block_size)
         else:
@@ -138,8 +121,12 @@ for n in casos_tamano:
             tiempos_por_tamano[nombre_algoritmo] = []
         tiempos_por_tamano[nombre_algoritmo].append(tiempo)
 
-    # Guardar los tiempos de ejecución por tamaño de matriz en su archivo CSV respectivo
-    guardar_resultados(tiempos_por_tamano, archivo_tiempos=f"resultados/tiempos/tiempos_ejecucion_{n}.csv")
+    # Guardar los tiempos de ejecución por tamaño de matriz
+    guardar_resultados(
+        tiempos_por_tamano,
+        archivo_tiempos=f"resultados/tiempos/tiempos_ejecucion_{n}.csv",
+        tamano_matriz=n  # Agrega el tamaño de la matriz al CSV
+    )
 
     # Acumular los tiempos en el diccionario global
     for alg, tiempo in tiempos_por_tamano.items():
@@ -147,11 +134,8 @@ for n in casos_tamano:
             tiempos[alg] = []
         tiempos[alg].extend(tiempo)
 
-    # Generar y guardar el gráfico de los tiempos de ejecución para este tamaño de matriz
-    generar_grafico(tiempos_por_tamano, archivo_grafico=f"resultados/graficos/tiempos_ejecucion_{n}.png")
-
-# Guardar los tiempos de ejecución acumulados en el archivo CSV de promedios
-guardar_resultados(tiempos, archivo_tiempos="resultados/tiempos/tiempos_ejecucion_promedio.csv")
-
-# Generar y guardar el gráfico de los tiempos de ejecución promedios
-generar_grafico(tiempos, archivo_grafico="resultados/graficos/tiempos_ejecucion_promedio.png")
+    # Guardar los tiempos de ejecución acumulados en el archivo CSV de promedios
+    guardar_resultados(
+        tiempos,
+        archivo_tiempos="resultados/tiempos/tiempos_ejecucion_promedio.csv"
+    )
