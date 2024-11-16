@@ -1,0 +1,11 @@
+Algoritmo,Tiempo promedio en segundos
+NaivOnArray,1.4969845499999792
+NaivLoopUnrollingTwo,0.9205830875016545
+NaivLoopUnrollingFour,0.8952785125002265
+WinogradOriginal,1.320812437497807
+WinogradScaled,2.967208362500969
+StrassenNaiv,2.498815500001001
+III.3 Sequential Block,1.4929172874999495
+IV.3 Sequential Block,1.5201348749978933
+V.3 Sequential Block,1.5563678750004328
+V.4 Parallel Block,1.8595061250034632
