@@ -1,7 +1,6 @@
 import numpy as np
 import concurrent.futures
 
-
 def block_multiply_parallel(A, B, C, block_size, start_row, end_row, start_col, end_col):
     """
     Multiplica bloques de A y B y almacena el resultado en C, usando paralelización para mejorar el rendimiento.

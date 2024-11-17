@@ -121,6 +121,12 @@ for n in casos_tamano:
             tiempos_por_tamano[nombre_algoritmo] = []
         tiempos_por_tamano[nombre_algoritmo].append(tiempo)
 
+        # Guardar el resultado de la matriz en un archivo CSV
+        matriz_resultado_path = f"resultados/resultados_matrices/{nombre_algoritmo}_resultado_{n}.csv"
+        with open(matriz_resultado_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(C)  # Guardar cada fila de la matriz como una fila en el CSV
+
     # Guardar los tiempos de ejecución por tamaño de matriz
     guardar_resultados(
         tiempos_por_tamano,
