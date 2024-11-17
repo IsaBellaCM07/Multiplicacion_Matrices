@@ -124,7 +124,7 @@ for n in casos_tamano:
     # Guardar los tiempos de ejecución por tamaño de matriz
     guardar_resultados(
         tiempos_por_tamano,
-        archivo_tiempos=f"resultados/tiempos/tiempos_ejecucion_{n}.csv",
+        archivo_tiempos=f"I:/Universidad_Isa/SEMESTRE VIII/Analisis de Algoritmos/ProyectoFinal_Graficos/ProyectoFinal/tiempos/tiempos_python/tiempos_ejecucion_{n}.csv",
         tamano_matriz=n  # Agrega el tamaño de la matriz al CSV
     )
 
@@ -137,5 +137,7 @@ for n in casos_tamano:
     # Guardar los tiempos de ejecución acumulados en el archivo CSV de promedios
     guardar_resultados(
         tiempos,
-        archivo_tiempos="resultados/tiempos/tiempos_ejecucion_promedio.csv"
+        archivo_tiempos="I:/Universidad_Isa/SEMESTRE VIII/Analisis de Algoritmos/ProyectoFinal_Graficos/ProyectoFinal/tiempos/tiempos_python/tiempos_ejecucion_promedio.csv"
     )
+
+
